@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BEKESAH - Media Pembelajaran IFP</title>
+    <!-- React & Tailwind -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Mencegah scrollbar muncul */
+        }
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-image: url('https://i.imgur.com/6VLckn4.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            user-select: none;
+        }
+        #root {
+            height: 100%;
+            width: 100%;
+        }
+        .bg-overlay {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .text-shadow {
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+        }
+        .text-shadow-dark {
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+        }
+        .logo-blend {
+            mix-blend-mode: multiply;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+            border: 2px solid #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        /* Animations */
+        @keyframes bounce-in {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        .animate-bounce-in {
+            animation: bounce-in 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000) both;
+        }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- ICONS ---
+        const Icons = {
+            Star: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+            Clock: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+            Users: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+            Trophy: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>,
+            RotateCcw: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
+            MessageCircle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>,
+            Play: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+            CheckCircle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+            XCircle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>,
+            ArrowRight: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+            HelpCircle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+            BookOpen: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+            X: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+            RefreshCw: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>,
+            Info: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
+            Home: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+            Maximize: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>,
+            Minimize: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>,
+            Volume2: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
+            VolumeX: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>,
+            Zap: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+            List: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+        };
+
+        const { Star, Clock, Users, Trophy, RotateCcw, MessageCircle, Play, CheckCircle, XCircle, ArrowRight, HelpCircle, BookOpen, X, RefreshCw, Info, Home, Maximize, Minimize, Volume2, VolumeX, Zap, List } = Icons;
+
+        // --- DATA KARTU ---
+        const CARDS_DATA = [
+            // A. Bangun Pagi
+            { id: 'A1', topic: 'Bangun Pagi', color: 'kuning', max: 10, min: 3, question: 'Pukul berapa biasanya kamu bangun pagi? Berapa lama waktu yang kamu butuhkan untuk bersiap-siap pergi ke sekolah?' },
+            { id: 'A2', topic: 'Bangun Pagi', color: 'hijau', max: 10, min: 6, question: 'Pukul berapa kamu dan saudaramu bangun? Berapa selisih waktu bangun tidurmu dengan saudaramu?' },
+            { id: 'A3', topic: 'Bangun Pagi', color: 'biru', max: 10, min: 3, question: 'Kalau kamu punya 1 jam sebelum berangkat sekolah, dan ingin membagi waktu itu untuk 3 kegiatan, kira-kira tiap kegiatan dapat berapa menit?' },
+            { id: 'A4', topic: 'Bangun Pagi', color: 'merah', max: 10, min: 5, question: 'Kalau kamu ingin bangun jam 05.00 dan butuh 10 menit untuk benar-benar bangun, sebaiknya alarm disetel jam berapa?' },
+
+            // B. Beribadah
+            { id: 'B1', topic: 'Beribadah', color: 'hijau', max: 10, min: 6, question: 'Kalau salat subuh 2 rakaat, zuhur 4, asar 4, magrib 3, dan isya 4, berapa jumlah seluruh rakaat salat wajib dalam sehari? Dan seminggu?' },
+            { id: 'B2', topic: 'Beribadah', color: 'biru', max: 10, min: 3, question: 'Jarak ke tempat ibadah 300m. Jika waktu jalan kaki 20 detik per 30m, berapa menit waktu yang dibutuhkan?' },
+            { id: 'B3', topic: 'Beribadah', color: 'merah', max: 10, min: 4, question: 'Apakah kamu sering membaca Kitab Suci? Kalau kamu membaca 2 halaman setiap hari, dalam seminggu kamu sudah baca berapa halaman?' },
+            { id: 'B4', topic: 'Beribadah', color: 'pink', max: 10, min: 5, question: 'Kalau kamu ingin menghafal 1 doa setiap 3 hari, dalam 15 hari kamu bisa hafal berapa doa?' },
+
+            // C. Berolahraga
+            { id: 'C1', topic: 'Berolahraga', color: 'biru', max: 10, min: 3, question: 'Kalau kamu melangkah 100 langkah setiap 5 menit, dalam 30 menit kamu sudah melangkah berapa langkah?' },
+            { id: 'C2', topic: 'Berolahraga', color: 'merah', max: 10, min: 4, question: 'Kalau kamu ingin berolahraga 3 kali seminggu, dan sekarang hari Selasa, hari apa saja kamu akan olahraga lagi?' },
+            { id: 'C3', topic: 'Berolahraga', color: 'pink', max: 10, min: 5, question: 'Kalau dalam seminggu kamu berolahraga 4 hari dan setiap sesi 30 menit, berapa total waktu olahraga kamu dalam seminggu?' },
+            { id: 'C4', topic: 'Berolahraga', color: 'ungu', max: 10, min: 3, question: 'Cobalah berlari di tempat selama 1 menit. Kemudian hitung detak jantungmu. Berapa kali jantungmu berdetak selama 2 menit?' },
+
+            // D. Makan Sehat & Bergizi
+            { id: 'D1', topic: 'Makan Sehat', color: 'merah', max: 10, min: 4, question: 'Kalau kamu minum 8 gelas sehari, dan tiap gelas 250 ml, berapa liter air yang kamu minum dalam sehari?' },
+            { id: 'D2', topic: 'Makan Sehat', color: 'pink', max: 10, min: 5, question: 'Kalau kamu makan gorengan 3 kali seminggu, berapa kali dalam sebulan (4 minggu)? Apakah baik untuk kesehatan?' },
+            { id: 'D3', topic: 'Makan Sehat', color: 'ungu', max: 10, min: 3, question: 'Kalau kamu makan 2 buah setiap hari, berapa buah yang kamu makan dalam 1 bulan (30 hari)?' },
+            { id: 'D4', topic: 'Makan Sehat', color: 'kuning', max: 10, min: 3, question: 'Ada berapa menu makanan dan minuman di kantin sekolahmu? Apakah semua menunya menurutmu sehat?' },
+
+            // E. Gemar Belajar
+            { id: 'E1', topic: 'Gemar Belajar', color: 'pink', max: 10, min: 5, question: 'Kalau kamu belajar 45 menit setiap hari, berapa jam kamu belajar dalam seminggu?' },
+            { id: 'E2', topic: 'Gemar Belajar', color: 'ungu', max: 10, min: 3, question: 'Berapa jam kamu berada di sekolah setiap hari? Berapa jam waktu belajarmu jika dikurangi jam istirahat?' },
+            { id: 'E3', topic: 'Gemar Belajar', color: 'kuning', max: 10, min: 3, question: 'Kalau kamu punya 3 pelajaran hari ini dan waktu belajarmu 90 menit, tiap pelajaran dapat berapa menit?' },
+            { id: 'E4', topic: 'Gemar Belajar', color: 'hijau', max: 10, min: 6, question: 'Kalau kamu membaca 10 halaman setiap hari, dalam 1 bulan kamu bisa baca berapa halaman?' },
+
+            // F. Bermasyarakat
+            { id: 'F1', topic: 'Bermasyarakat', color: 'ungu', max: 10, min: 3, question: 'Kalau ada 6 keluarga dan setiap keluarga mengirim 2 orang untuk gotong royong, berapa orang yang ikut?' },
+            { id: 'F2', topic: 'Bermasyarakat', color: 'kuning', max: 10, min: 3, question: 'Kalau di jalan rumahmu ada 12 rumah di kiri dan 14 rumah di kanan, berapa jumlah seluruh rumah di jalanmu?' },
+            { id: 'F3', topic: 'Bermasyarakat', color: 'hijau', max: 10, min: 6, question: 'Kalau setiap rumah menyumbang Rp10.000 dan ada 25 rumah, berapa total sumbangan yang terkumpul?' },
+            { id: 'F4', topic: 'Bermasyarakat', color: 'biru', max: 10, min: 3, question: 'Kalau kamu bermain bersama tetangga selama 1 jam dan mengikuti pengajian 1,5 jam, mana yang lebih lama dan selisihnya berapa?' },
+
+            // G. Tidur Cepat
+            { id: 'G1', topic: 'Tidur Cepat', color: 'kuning', max: 10, min: 3, question: 'Jam berapa kamu tidur? Berapa lama kamu tidur setiap malam? Dalam seminggu kamu tidur berapa jam?' },
+            { id: 'G2', topic: 'Tidur Cepat', color: 'hijau', max: 10, min: 6, question: 'Anak seusiamu disarankan tidur 9 jam. Kalau kamu tidur 7,5 jam, kurang berapa jam lagi supaya cukup?' },
+            { id: 'G3', topic: 'Tidur Cepat', color: 'biru', max: 10, min: 3, question: 'Apa saja aktivitas yang kamu lakukan sebelum tidur malam? Berapa menit waktu yang kamu butuhkan?' },
+            { id: 'G4', topic: 'Tidur Cepat', color: 'merah', max: 10, min: 4, question: 'Kalau kamu tidur jam 9 malam dan bangun jam 5 pagi, kamu tidur berapa jam?' },
+        ];
+
+        // --- KONFIGURASI PAPAN PEMAIN ---
+        const PLAYER_BOARDS_CONFIG = [
+            // Player 1
+            [
+                { topic: 'Bangun Pagi', targetColor: 'kuning' },
+                { topic: 'Beribadah', targetColor: 'hijau' },
+                { topic: 'Berolahraga', targetColor: 'biru' },
+                { topic: 'Gemar Belajar', targetColor: 'merah' },
+                { topic: 'Makan Sehat', targetColor: 'pink' },
+                { topic: 'Bermasyarakat', targetColor: 'ungu' }
+            ],
+            // Player 2
+            [
+                { topic: 'Tidur Cepat', targetColor: 'kuning' },
+                { topic: 'Bangun Pagi', targetColor: 'hijau' },
+                { topic: 'Beribadah', targetColor: 'biru' },
+                { topic: 'Berolahraga', targetColor: 'merah' },
+                { topic: 'Gemar Belajar', targetColor: 'pink' },
+                { topic: 'Makan Sehat', targetColor: 'ungu' }
+            ],
+            // Player 3 
+            [
+                { topic: 'Bermasyarakat', targetColor: 'kuning' },
+                { topic: 'Tidur Cepat', targetColor: 'hijau' },
+                { topic: 'Bangun Pagi', targetColor: 'biru' },
+                { topic: 'Beribadah', targetColor: 'merah' },
+                { topic: 'Berolahraga', targetColor: 'pink' },
+                { topic: 'Gemar Belajar', targetColor: 'ungu' }
+            ],
+            // Player 4
+            [
+                { topic: 'Makan Sehat', targetColor: 'kuning' },
+                { topic: 'Bermasyarakat', targetColor: 'hijau' },
+                { topic: 'Tidur Cepat', targetColor: 'biru' },
+                { topic: 'Bangun Pagi', targetColor: 'merah' },
+                { topic: 'Beribadah', targetColor: 'pink' },
+                { topic: 'Berolahraga', targetColor: 'ungu' }
+            ]
+        ];
+
+        // --- HELPER FUNCTIONS ---
+        const getColorClass = (colorName) => {
+            switch(colorName) {
+                case 'kuning': return 'bg-yellow-300 border-yellow-500 text-yellow-900';
+                case 'hijau': return 'bg-green-300 border-green-500 text-green-900';
+                case 'biru': return 'bg-blue-300 border-blue-500 text-blue-900';
+                case 'merah': return 'bg-red-300 border-red-500 text-red-900';
+                case 'pink': return 'bg-pink-300 border-pink-500 text-pink-900';
+                case 'ungu': return 'bg-purple-300 border-purple-500 text-purple-900';
+                default: return 'bg-gray-200 border-gray-400';
+            }
+        };
+
+        const getSlotColorClass = (colorName) => {
+             switch(colorName) {
+                case 'kuning': return 'bg-yellow-200 border-yellow-400 text-yellow-800';
+                case 'hijau': return 'bg-green-200 border-green-400 text-green-800';
+                case 'biru': return 'bg-blue-200 border-blue-400 text-blue-800';
+                case 'merah': return 'bg-red-200 border-red-400 text-red-800';
+                case 'pink': return 'bg-pink-200 border-pink-400 text-pink-800';
+                case 'ungu': return 'bg-purple-200 border-purple-400 text-purple-800';
+                default: return 'bg-gray-100 border-gray-300';
+            }
+        };
+
+        const getTopicImage = (topic) => {
+            if (topic.includes('Bangun')) return 'https://i.imgur.com/X0S9pt4.png';
+            if (topic.includes('Beribadah')) return 'https://i.imgur.com/x1XPJfA.png';
+            if (topic.includes('Berolahraga')) return 'https://i.imgur.com/dV5oGqu.png';
+            if (topic.includes('Makan')) return 'https://i.imgur.com/7deMgna.png';
+            if (topic.includes('Belajar')) return 'https://i.imgur.com/ELuX7Cu.png';
+            if (topic.includes('Bermasyarakat')) return 'https://i.imgur.com/mWohqZ3.png';
+            if (topic.includes('Tidur')) return 'https://i.imgur.com/Gvmm2wP.png';
+            return null;
+        }
+
+        const calculatePoints = (card, targetSlot) => {
+            if (!card || !targetSlot) return 0;
+            return (card.color === targetSlot.targetColor) ? card.max : card.min;
+        };
+
+        // --- COMPONENTS ---
+
+        const Modal = ({ isOpen, onClose, title, children }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col animate-bounce-in">
+                        <div className="p-6 border-b flex justify-between items-center bg-blue-50 rounded-t-3xl">
+                            <h2 className="text-2xl font-bold text-blue-800 flex items-center gap-3">
+                                <BookOpen className="w-6 h-6"/> {title}
+                            </h2>
+                            <button onClick={onClose} className="p-2 hover:bg-blue-100 rounded-full transition-colors">
+                                <X className="w-6 h-6 text-blue-800" />
+                            </button>
+                        </div>
+                        <div className="p-8 overflow-y-auto text-base leading-relaxed text-gray-700">
+                            {children}
+                        </div>
+                        <div className="p-6 border-t bg-gray-50 rounded-b-3xl text-right">
+                            <button onClick={onClose} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold text-lg shadow-lg transform transition active:scale-95">
+                                Mengerti
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const PlayerProgressOverlay = ({ players, currentPlayerId, isOpen, onClose }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] flex justify-end">
+                    <div className="bg-white h-full w-64 shadow-2xl border-l border-gray-200 p-4 animate-bounce-in overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4 border-b pb-2">
+                             <h3 className="font-black text-gray-700 uppercase tracking-widest text-xs flex items-center gap-2">
+                                <List size={14}/> Progres Pemain
+                            </h3>
+                            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                                <X size={18}/>
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            {players.map(p => (
+                                <div key={p.id} className={`p-3 rounded-xl border-2 transition-all ${p.id === currentPlayerId ? 'bg-indigo-50 border-indigo-200 shadow-sm' : 'bg-gray-50 border-gray-100 opacity-90'}`}>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <div className="font-bold text-xs text-gray-800 truncate w-24" title={p.name}>{p.name}</div>
+                                        <div className="bg-yellow-100 text-yellow-800 text-[9px] px-1.5 py-0.5 rounded font-bold border border-yellow-200 flex items-center gap-1">
+                                            <Star size={9} fill="currentColor"/> {p.score}
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-1.5">
+                                        {p.boardConfig.map((slot, i) => {
+                                            const hasCard = p.collectedCards[slot.topic];
+                                            return (
+                                                <div key={i} className={`h-1.5 rounded-full ${hasCard ? 'bg-green-500' : 'bg-gray-300'}`} title={slot.topic}></div>
+                                            )
+                                        })}
+                                    </div>
+                                    <div className="text-[8px] text-gray-400 mt-1.5 text-right font-medium">
+                                        {Object.keys(p.collectedCards).length} / 6 Kartu
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+
+        const TurnOverlay = ({ playerName, onReady }) => (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-bounce-in">
+                <div className="bg-white p-6 rounded-2xl shadow-2xl text-center max-w-sm w-full border-4 border-indigo-200">
+                    <div className="bg-yellow-400 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                        <Zap size={24} className="text-white fill-current" />
+                    </div>
+                    <h2 className="text-base font-bold text-gray-500 uppercase tracking-widest mb-1">Giliran Selanjutnya</h2>
+                    <h1 className="text-2xl font-black text-indigo-700 mb-6">{playerName}</h1>
+                    <button 
+                        onClick={onReady}
+                        className="bg-green-500 hover:bg-green-600 text-white text-lg font-black py-2.5 px-6 rounded-full shadow-[0_4px_0_rgb(21,128,61)] hover:shadow-[0_2px_0_rgb(21,128,61)] active:shadow-none active:translate-y-[4px] transition-all transform hover:scale-105 flex items-center gap-2 mx-auto"
+                    >
+                        <Play size={20} fill="currentColor"/> SIAP MAIN
+                    </button>
+                </div>
+            </div>
+        );
+
+        const Card = ({ card, isFaceDown, onClick, isTarget, targetColor, topic, isSmall }) => {
+            const cardSizeClass = isSmall
+                ? "w-20 h-28 md:w-24 md:h-32 text-[10px]" 
+                : "w-24 h-36 md:w-32 md:h-48"; 
+
+            if (isTarget) {
+                return (
+                    <div className={`relative ${cardSizeClass} border-4 border-dashed rounded-xl flex flex-col items-center justify-center p-1 text-center transition-all ${card ? 'border-solid border-4 border-white shadow-md' : getSlotColorClass(targetColor)}`}>
+                        {card ? (
+                            <div className={`w-full h-full rounded-lg flex flex-col items-center p-1 ${getColorClass(card.color)} relative overflow-hidden`}>
+                                <div className="flex flex-col items-center mb-0.5">
+                                    <div className="w-6 h-6 md:w-8 md:h-8">
+                                        <img src={getTopicImage(card.topic)} alt={card.topic} className="w-full h-full object-contain" />
+                                    </div>
+                                    <div className="font-bold text-[8px] uppercase leading-none opacity-80 mt-0.5">{card.topic}</div>
+                                </div>
+                                
+                                <div className="flex-1 flex items-center justify-center my-0.5 w-full">
+                                    <p className="text-[7px] md:text-[8px] leading-tight font-medium text-center line-clamp-3 px-0.5">
+                                        {card.question}
+                                    </p>
+                                </div>
+
+                                <div className="bg-white/40 rounded px-1 py-0.5 text-[7px] md:text-[8px] font-bold w-full">
+                                    M:{card.max} | m:{card.min}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="opacity-90 flex flex-col items-center justify-center h-full">
+                                <div className="w-8 h-8 md:w-10 md:h-10 mb-1">
+                                    <img src={getTopicImage(topic)} alt={topic} className="w-full h-full object-contain opacity-80" />
+                                </div>
+                                <div className="font-bold leading-tight text-[8px] md:text-[10px] uppercase tracking-wide">{topic}</div>
+                                <div className="mt-0.5 text-[8px] opacity-70 uppercase font-semibold">{targetColor}</div>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            return (
+                <div 
+                    onClick={onClick}
+                    className={`${cardSizeClass} rounded-lg cursor-pointer transition-transform transform hover:scale-105 duration-200 card-shadow relative ${isFaceDown ? 'bg-gradient-to-br from-indigo-600 to-blue-800' : getColorClass(card.color)} border-4 border-white flex flex-col`}
+                >
+                    {isFaceDown ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center p-2 relative overflow-hidden">
+                            {/* Logo on Card Back */}
+                            <div className="bg-white/20 backdrop-blur-sm p-2 rounded-full mb-2 shadow-lg">
+                                <img src="https://i.imgur.com/QExi1Ti.jpeg" alt="Logo" className="w-8 h-auto logo-blend filter brightness-110 contrast-125" />
+                            </div>
+                            <div className="text-white/80 font-bold text-center text-[10px] tracking-[0.2em] border-t border-white/20 pt-1 w-full uppercase">Bekesah</div>
+                        </div>
+                    ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-between p-2 relative overflow-hidden">
+                            <div className="flex flex-col items-center z-10 w-full border-b border-black/10 pb-1 mb-1">
+                                <div className="w-10 h-10 md:w-12 md:h-12 drop-shadow-sm mb-0.5">
+                                    <img src={getTopicImage(card.topic)} alt={card.topic} className="w-full h-full object-contain" />
+                                </div>
+                                <h3 className="font-bold text-[8px] md:text-[10px] uppercase tracking-wide text-black/70 text-center leading-none">{card.topic}</h3>
+                            </div>
+
+                            <div className="flex-1 flex items-center justify-center z-10 w-full my-0.5">
+                                <p className="font-semibold text-center text-gray-900 text-[8px] md:text-[9px] leading-tight px-0.5 line-clamp-4">
+                                    {card.question}
+                                </p>
+                            </div>
+
+                            <div className="bg-white/60 backdrop-blur-sm rounded px-1 py-0.5 text-[8px] md:text-[9px] font-bold text-center w-full shadow-sm z-10 text-gray-800 border border-white/50 mt-0.5">
+                                Maks: {card.max} | Min: {card.min}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [gameState, setGameState] = useState('intro'); 
+            const [numPlayers, setNumPlayers] = useState(2);
+            const [players, setPlayers] = useState([]);
+            const [playerNames, setPlayerNames] = useState({});
+            const [deck, setDeck] = useState([]);
+            const [discardPile, setDiscardPile] = useState([]);
+            const [turn, setTurn] = useState(0);
+            const [drawnCard, setDrawnCard] = useState(null);
+            const [timer, setTimer] = useState(300);
+            const [winner, setWinner] = useState(null);
+            const [discussionCard, setDiscussionCard] = useState(null);
+            const [showGuide, setShowGuide] = useState(false);
+            const [showProgress, setShowProgress] = useState(false);
+            
+            // Turn Notification State
+            const [showTurnNotification, setShowTurnNotification] = useState(false);
+            const [nextPlayerName, setNextPlayerName] = useState("");
+
+            // Audio State
+            const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+            const audioRef = useRef(new Audio("https://github.com/belajarituseru39-gif/bekesah/raw/refs/heads/main/Bincang%20Numerasi%20Asyik.mp3"));
+            audioRef.current.loop = true;
+
+            useEffect(() => {
+                let interval;
+                // Only pause timer for turn notification if there's more than 1 player
+                const isPaused = numPlayers > 1 && showTurnNotification;
+                
+                if (gameState === 'playing' && !isPaused && timer > 0) {
+                    interval = setInterval(() => {
+                        setTimer((prev) => prev - 1);
+                    }, 1000);
+                } else if (timer === 0 && gameState === 'playing') {
+                    endGame();
+                }
+                return () => clearInterval(interval);
+            }, [gameState, timer, showTurnNotification, numPlayers]);
+
+            const toggleMusic = () => {
+                if (isMusicPlaying) {
+                    audioRef.current.pause();
+                } else {
+                    audioRef.current.play().catch(e => console.log("Audio play failed:", e));
+                }
+                setIsMusicPlaying(!isMusicPlaying);
+            };
+
+            const toggleFullscreen = () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            };
+
+            const startMusicAndGame = () => {
+                if (!isMusicPlaying) {
+                    audioRef.current.play().then(() => {
+                        setIsMusicPlaying(true);
+                    }).catch(e => console.log("Auto-play prevented"));
+                }
+                setGameState('setup');
+            };
+
+            const handleNameChange = (index, value) => {
+                setPlayerNames(prev => ({
+                    ...prev,
+                    [index]: value
+                }));
+            };
+
+            const shuffleDeck = (array) => {
+                let currentIndex = array.length, randomIndex;
+                while (currentIndex != 0) {
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+                    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+                }
+                return array;
+            };
+
+            const startGame = () => {
+                const newPlayers = Array.from({ length: numPlayers }, (_, i) => ({
+                    id: i,
+                    name: playerNames[i] || `Pemain ${i + 1}`,
+                    boardConfig: PLAYER_BOARDS_CONFIG[i],
+                    collectedCards: {}, 
+                    score: 0
+                }));
+                
+                const newDeck = shuffleDeck([...CARDS_DATA]);
+                
+                setPlayers(newPlayers);
+                setDeck(newDeck);
+                setDiscardPile([]);
+                setTurn(0);
+                setTimer(300);
+                setGameState('playing');
+                setDrawnCard(null);
+                
+                // Show notification only if multiple players
+                if (numPlayers > 1) {
+                    setShowTurnNotification(true);
+                    setNextPlayerName(newPlayers[0].name);
+                } else {
+                    setShowTurnNotification(false);
+                }
+            };
+
+            const drawFromDeck = () => {
+                if (deck.length === 0) {
+                    if (discardPile.length > 0) {
+                        const newDeck = shuffleDeck([...discardPile]);
+                        const card = newDeck.pop();
+                        
+                        setDeck(newDeck);
+                        setDiscardPile([]);
+                        setDrawnCard(card);
+                    } else {
+                        return; 
+                    }
+                } else {
+                    const newDeck = [...deck];
+                    const card = newDeck.pop();
+                    setDeck(newDeck);
+                    setDrawnCard(card);
+                }
+            };
+
+            const drawFromDiscard = () => {
+                if (discardPile.length === 0) return;
+                const newDiscard = [...discardPile];
+                const card = newDiscard.pop();
+                setDiscardPile(newDiscard);
+                setDrawnCard(card);
+            };
+
+            const handleKeepCard = () => {
+                if (!drawnCard) return;
+
+                const currentPlayer = players[turn];
+                const targetSlot = currentPlayer.boardConfig.find(slot => slot.topic === drawnCard.topic);
+
+                if (targetSlot) {
+                    const oldCard = currentPlayer.collectedCards[drawnCard.topic];
+                    
+                    if (oldCard) {
+                        setDiscardPile(prev => [...prev, oldCard]);
+                    }
+
+                    let points = calculatePoints(drawnCard, targetSlot);
+
+                    let scoreChange = points;
+                    if (oldCard) {
+                        scoreChange -= oldCard.pointsEarned;
+                    }
+
+                    const updatedPlayers = [...players];
+                    updatedPlayers[turn] = {
+                        ...currentPlayer,
+                        collectedCards: {
+                            ...currentPlayer.collectedCards,
+                            [drawnCard.topic]: { ...drawnCard, pointsEarned: points }
+                        },
+                        score: currentPlayer.score + scoreChange
+                    };
+
+                    setPlayers(updatedPlayers);
+                    setDrawnCard(null);
+                    
+                    const filledSlots = Object.keys(updatedPlayers[turn].collectedCards).length;
+                    if (filledSlots === currentPlayer.boardConfig.length) {
+                        endGame(updatedPlayers);
+                    } else {
+                        nextTurn();
+                    }
+                }
+            };
+
+            const handleDiscardCard = () => {
+                if (!drawnCard) return;
+                setDiscardPile(prev => [...prev, drawnCard]);
+                setDrawnCard(null);
+                nextTurn();
+            };
+
+            const nextTurn = () => {
+                const nextIndex = (turn + 1) % numPlayers;
+                const nextName = players[nextIndex].name;
+                
+                setTurn(nextIndex);
+                
+                if (numPlayers > 1) {
+                    setNextPlayerName(nextName);
+                    setShowTurnNotification(true);
+                }
+            };
+
+            const closeTurnNotification = () => {
+                setShowTurnNotification(false);
+            };
+
+            const endGame = (currentPlayersState = players) => {
+                setGameState('ended');
+                const sortedPlayers = [...currentPlayersState].sort((a, b) => b.score - a.score);
+                setWinner(sortedPlayers[0]);
+            };
+
+            const formatTime = (seconds) => {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                return `${m}:${s < 10 ? '0' : ''}${s}`;
+            };
+
+            const startDiscussion = (card) => {
+                setDiscussionCard(card);
+                setGameState('discussion');
+            };
+
+            // --- RENDERERS ---
+
+            const ControlButtons = () => (
+                <div className="fixed top-2 right-2 z-50 flex gap-2">
+                    {gameState === 'playing' && (
+                         <button onClick={() => setShowProgress(!showProgress)} className="bg-white/80 p-1 rounded-full shadow-lg hover:bg-white transition-colors" title="Lihat Progres">
+                             <List className="text-indigo-600 w-4 h-4"/>
+                        </button>
+                    )}
+                    <button onClick={() => setShowGuide(true)} className="bg-white/80 p-1 rounded-full shadow-lg hover:bg-white transition-colors" title="Cara Bermain">
+                         <HelpCircle className="text-orange-500 w-4 h-4"/>
+                    </button>
+                    <button onClick={toggleMusic} className="bg-white/80 p-1 rounded-full shadow-lg hover:bg-white transition-colors" title="Musik">
+                        {isMusicPlaying ? <Volume2 className="text-gray-700 w-4 h-4"/> : <VolumeX className="text-red-500 w-4 h-4"/>}
+                    </button>
+                    <button onClick={toggleFullscreen} className="bg-white/80 p-1 rounded-full shadow-lg hover:bg-white transition-colors" title="Layar Penuh">
+                        <Maximize className="text-gray-700 w-4 h-4"/>
+                    </button>
+                </div>
+            );
+
+            if (gameState === 'intro') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden text-gray-800">
+                        <ControlButtons />
+                        
+                        <div className="bg-white/80 backdrop-blur-md rounded-[2rem] p-4 md:p-6 shadow-2xl z-10 text-center animate-bounce-in flex flex-col items-center max-w-xl border border-white/50 w-full">
+                            <div className="bg-indigo-600 text-white px-3 py-1 rounded-full font-bold uppercase tracking-widest text-[10px] mb-2 shadow-md">
+                                Media Permainan Edukasi
+                            </div>
+
+                            <div className="animate-float mb-2">
+                                <div className="bg-white p-2 rounded-xl shadow-lg">
+                                    <img src="https://i.imgur.com/QExi1Ti.jpeg" alt="Logo BEKESAH" className="w-20 md:w-28 logo-blend" />
+                                </div>
+                            </div>
+
+                            <p className="text-base font-bold tracking-wide text-gray-700 mb-2 font-fredoka">Bincang Numerasi Asyik Dan Ramah</p>
+                            
+                            <p className="text-xs text-gray-600 mb-3 max-w-sm leading-relaxed">
+                                adalah media pembelajaran berbasis permainan yang dapat membantu guru untuk memulai kegiatan Bincang Numerasi secara rutin di kelas dengan tema 7 Kebiasaan Anak Indonesia Hebat.
+                            </p>
+
+                            <div className="bg-white/60 rounded-lg p-2 border border-gray-200 mb-4 w-full shadow-inner text-[10px]">
+                                <h3 className="font-bold text-indigo-700 text-sm mb-0.5">Ide Permainan</h3>
+                                <p className="font-bold text-gray-800">oleh Abdul Rahmat, S.Pd</p>
+                                <p className="text-gray-600">SDN 011 Balikpapan Tengah</p>
+                                <p className="text-gray-500 mt-0.5 text-[8px]">Kontak: 081351767574</p>
+                            </div>
+
+                            <button 
+                                onClick={startMusicAndGame}
+                                className="group relative bg-yellow-400 hover:bg-yellow-300 text-yellow-900 text-base font-black py-2 px-6 rounded-full shadow-[0_3px_0_rgb(180,83,9)] hover:shadow-[0_2px_0_rgb(180,83,9)] active:shadow-none active:translate-y-[3px] transition-all duration-150 flex items-center gap-2 transform hover:scale-105"
+                            >
+                                <Play size={20} fill="currentColor"/>
+                                MASUK KE PERMAINAN
+                            </button>
+                        </div>
+                        
+                        <Modal isOpen={showGuide} onClose={() => setShowGuide(false)} title="Aturan Permainan BEKESAH">
+                            <div className="space-y-4 text-xs">
+                                <section>
+                                    <h3 className="text-sm font-bold text-indigo-700 mb-1 flex items-center gap-1.5 bg-indigo-50 p-1.5 rounded-lg">
+                                        <Trophy size={14} className="text-indigo-500"/> 1. Tujuan Permainan
+                                    </h3>
+                                    <p className="text-gray-600 pl-2">Kumpulkan semua kartu yang <strong>SESUAI</strong> dengan topik di papan permainanmu secepat mungkin sebelum waktu habis!</p>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-sm font-bold text-indigo-700 mb-1 flex items-center gap-1.5 bg-indigo-50 p-1.5 rounded-lg">
+                                        <Play size={14} className="text-indigo-500"/> 2. Cara Bermain
+                                    </h3>
+                                    <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                                        <li>Ambil kartu dari <strong>Tumpukan Tertutup</strong> atau <strong>Kartu Terbuka</strong>.</li>
+                                        <li>Cocokkan topik kartu dengan slot kosong di papanmu.</li>
+                                        <li>
+                                            <span className="font-bold text-green-600">COCOK</span> = Simpan kartu. <br/>
+                                            <span className="font-bold text-red-500">TIDAK COCOK</span> = Buang ke tumpukan terbuka.
+                                        </li>
+                                        <li>Kamu bisa <strong>MENUKAR</strong> kartu yang sudah ada jika menemukan kartu baru dengan poin lebih tinggi.</li>
+                                    </ul>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-sm font-bold text-indigo-700 mb-1 flex items-center gap-1.5 bg-indigo-50 p-1.5 rounded-lg">
+                                        <Star size={14} className="text-indigo-500"/> 3. Sistem Poin
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-3 mt-2">
+                                        <div className="bg-green-50 p-2 rounded-lg border border-green-200 text-center">
+                                            <strong className="block text-green-700 text-sm mb-0.5">⭐ 10 Poin</strong>
+                                            <span className="text-[10px] text-gray-500 leading-tight">Jika Topik & Warna kartu <strong>SAMA PERSIS</strong> dengan papan.</span>
+                                        </div>
+                                        <div className="bg-yellow-50 p-2 rounded-lg border border-yellow-200 text-center">
+                                            <strong className="block text-yellow-700 text-sm mb-0.5">⭐ 3-6 Poin</strong>
+                                            <span className="text-[10px] text-gray-500 leading-tight">Jika Topik <strong>SAMA</strong> tapi Warna <strong>BERBEDA</strong>.</span>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </Modal>
+                    </div>
+                );
+            }
+
+            if (gameState === 'setup') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden animate-bounce-in">
+                        <ControlButtons />
+                        
+                        <div className="bg-white/90 backdrop-blur-md p-4 md:p-6 rounded-[2rem] shadow-2xl text-center max-w-2xl w-full z-10 border-4 border-white">
+                             <div className="mb-3">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-0.5">Persiapan Permainan</h2>
+                                <p className="text-xs text-gray-500 font-medium">Tentukan jumlah dan nama pemain.</p>
+                            </div>
+                            
+                            <div className="mb-4 bg-indigo-50 p-3 rounded-xl border-2 border-indigo-100">
+                                <label className="block text-base font-bold text-gray-700 mb-2">Jumlah Pemain:</label>
+                                <div className="flex justify-center gap-3 mb-3">
+                                    {[1, 2, 3, 4].map(num => (
+                                        <button 
+                                            key={num}
+                                            onClick={() => setNumPlayers(num)}
+                                            className={`w-10 h-10 rounded-lg text-lg font-black transition-all transform hover:scale-110 ${numPlayers === num ? 'bg-indigo-600 text-white shadow-xl ring-2 ring-indigo-200 scale-110' : 'bg-white text-gray-400 border-2 border-gray-200 hover:border-indigo-300 hover:text-indigo-500'}`}
+                                        >
+                                                {num}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-left">
+                                    {Array.from({ length: numPlayers }).map((_, i) => (
+                                        <div key={i}>
+                                            <label className="block text-[10px] font-bold text-gray-600 mb-0.5 ml-1">Nama Pemain {i + 1}</label>
+                                            <input 
+                                                type="text" 
+                                                placeholder={`Pemain ${i + 1}`}
+                                                value={playerNames[i] || ''}
+                                                onChange={(e) => handleNameChange(i, e.target.value)}
+                                                className="w-full px-2 py-1.5 rounded border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-gray-700 font-bold text-xs"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setShowGuide(true)}
+                                    className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-base font-bold py-2 rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-transform active:scale-95"
+                                >
+                                    <HelpCircle size={16} /> Cara Bermain
+                                </button>
+                                <button 
+                                    onClick={startGame}
+                                    className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold py-2 rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-transform active:scale-95"
+                                >
+                                    <Play size={20} fill="currentColor" /> Mulai Sekarang
+                                </button>
+                            </div>
+
+                             <button onClick={() => setGameState('intro')} className="mt-3 text-gray-500 hover:text-gray-800 font-bold text-[10px] flex items-center justify-center gap-1">
+                                <ArrowRight className="rotate-180" size={10}/> Kembali ke Judul
+                            </button>
+                        </div>
+
+                        <Modal isOpen={showGuide} onClose={() => setShowGuide(false)} title="Aturan Permainan BEKESAH">
+                            <div className="space-y-4 text-xs">
+                                <section>
+                                    <h3 className="text-sm font-bold text-indigo-700 mb-1 flex items-center gap-1.5 bg-indigo-50 p-1.5 rounded-lg">
+                                        <Trophy size={14} className="text-indigo-500"/> 1. Tujuan Permainan
+                                    </h3>
+                                    <p className="text-gray-600 pl-2">Kumpulkan semua kartu yang <strong>SESUAI</strong> dengan topik di papan permainanmu secepat mungkin sebelum waktu habis!</p>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-sm font-bold text-indigo-700 mb-1 flex items-center gap-1.5 bg-indigo-50 p-1.5 rounded-lg">
+                                        <Play size={14} className="text-indigo-500"/> 2. Cara Bermain
+                                    </h3>
+                                    <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                                        <li>Ambil kartu dari <strong>Tumpukan Tertutup</strong> atau <strong>Kartu Terbuka</strong>.</li>
+                                        <li>Cocokkan topik kartu dengan slot kosong di papanmu.</li>
+                                        <li>
+                                            <span className="font-bold text-green-600">COCOK</span> = Simpan kartu. <br/>
+                                            <span className="font-bold text-red-500">TIDAK COCOK</span> = Buang ke tumpukan terbuka.
+                                        </li>
+                                        <li>Kamu bisa <strong>MENUKAR</strong> kartu yang sudah ada jika menemukan kartu baru dengan poin lebih tinggi.</li>
+                                    </ul>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-sm font-bold text-indigo-700 mb-1 flex items-center gap-1.5 bg-indigo-50 p-1.5 rounded-lg">
+                                        <Star size={14} className="text-indigo-500"/> 3. Sistem Poin
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-3 mt-2">
+                                        <div className="bg-green-50 p-2 rounded-lg border border-green-200 text-center">
+                                            <strong className="block text-green-700 text-sm mb-0.5">⭐ 10 Poin</strong>
+                                            <span className="text-[10px] text-gray-500 leading-tight">Jika Topik & Warna kartu <strong>SAMA PERSIS</strong> dengan papan.</span>
+                                        </div>
+                                        <div className="bg-yellow-50 p-2 rounded-lg border border-yellow-200 text-center">
+                                            <strong className="block text-yellow-700 text-sm mb-0.5">⭐ 3-6 Poin</strong>
+                                            <span className="text-[10px] text-gray-500 leading-tight">Jika Topik <strong>SAMA</strong> tapi Warna <strong>BERBEDA</strong>.</span>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </Modal>
+                    </div>
+                );
+            }
+
+            if (gameState === 'playing') {
+                const currentPlayer = players[turn];
+                const canKeep = drawnCard && currentPlayer.boardConfig.some(slot => slot.topic === drawnCard.topic);
+                const matchedSlot = drawnCard ? currentPlayer.boardConfig.find(s => s.topic === drawnCard.topic) : null;
+                const isPerfectMatch = matchedSlot && matchedSlot.targetColor === drawnCard.color;
+                const existingCard = matchedSlot ? currentPlayer.collectedCards[matchedSlot.topic] : null;
+                const potentialPoints = matchedSlot ? calculatePoints(drawnCard, matchedSlot) : 0;
+                const pointDiff = existingCard ? potentialPoints - existingCard.pointsEarned : 0;
+
+                return (
+                    <div className="h-screen flex flex-col overflow-hidden font-fredoka">
+                        <ControlButtons />
+
+                        {/* Player Progress Sidebar */}
+                        <PlayerProgressOverlay 
+                            players={players} 
+                            currentPlayerId={currentPlayer.id} 
+                            isOpen={showProgress} 
+                            onClose={() => setShowProgress(false)} 
+                        />
+                        
+                        {/* Turn Notification Overlay */}
+                        {showTurnNotification && (
+                            <TurnOverlay playerName={nextPlayerName} onReady={closeTurnNotification} />
+                        )}
+                        
+                        {/* Persistent Score Overlay (Top Left) */}
+                        <div className="fixed top-2 left-2 z-40 bg-white/90 backdrop-blur-md px-2 py-1 rounded-lg shadow-md border border-indigo-200 flex flex-col items-start animate-bounce-in">
+                            <div className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">Pemain Aktif</div>
+                            <div className="text-sm font-black text-indigo-700">{currentPlayer.name}</div>
+                            <div className="flex items-center gap-0.5 text-yellow-600 font-bold mt-0.5 text-[10px]">
+                                <Star size={10} fill="currentColor" />
+                                <span>{currentPlayer.score} Poin</span>
+                            </div>
+                        </div>
+
+                        {/* Header Fixed */}
+                        <div className="bg-white/90 backdrop-blur shadow-sm p-1.5 px-3 flex justify-center items-center z-20 shrink-0 border-b border-gray-200 h-10">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-1.5 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                                    <Clock size={16} className="text-indigo-600" />
+                                    <span className="text-base font-bold font-mono text-indigo-900">{formatTime(timer)}</span>
+                                </div>
+                                
+                                <div className="flex flex-col items-center">
+                                    <div className="text-[8px] font-bold text-gray-500 tracking-widest uppercase">Giliran Pemain</div>
+                                    <h2 className="text-lg font-black text-indigo-700 leading-none text-shadow-dark">{currentPlayer.name}</h2>
+                                </div>
+
+                                <button onClick={() => endGame()} className="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded-md font-bold text-xs transition-colors border border-red-200 shadow-sm">
+                                    Akhiri
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Main Game Area */}
+                        <div className="flex-1 flex flex-col items-center justify-center relative p-2 w-full">
+                            
+                            {/* Deck Area - Compact */}
+                            <div className="flex gap-4 items-center mb-3 scale-90 bg-white/40 p-3 rounded-2xl backdrop-blur-sm border border-white/50 shadow-lg">
+                                {/* Deck Tertutup */}
+                                <div className="text-center group">
+                                    <div className="mb-0.5 font-bold text-gray-800 text-[8px] tracking-wider uppercase group-hover:text-indigo-700 transition-colors bg-white/60 px-1.5 py-0.5 rounded">Ambil Disini</div>
+                                    <Card isFaceDown={true} onClick={!drawnCard ? drawFromDeck : null} />
+                                    <div className="mt-0.5 text-[8px] font-bold text-gray-800 bg-white/60 px-1.5 py-0.5 rounded inline-block">{deck.length} Kartu</div>
+                                </div>
+
+                                {/* Kartu Terbuka */}
+                                <div className="text-center group">
+                                    <div className="mb-0.5 font-bold text-gray-800 text-[8px] tracking-wider uppercase group-hover:text-indigo-700 transition-colors bg-white/60 px-1.5 py-0.5 rounded">Atau Disini</div>
+                                    {discardPile.length > 0 ? (
+                                        <Card card={discardPile[discardPile.length - 1]} onClick={!drawnCard ? drawFromDiscard : null} />
+                                    ) : (
+                                        <div className="w-20 h-32 md:w-24 md:h-40 border-2 border-dashed border-gray-400 bg-white/30 rounded-lg flex items-center justify-center text-gray-600 font-bold text-[10px]">
+                                            Kosong
+                                        </div>
+                                    )}
+                                    <div className="mt-0.5 text-[8px] font-bold text-gray-800 bg-white/60 px-1.5 py-0.5 rounded inline-block">Tumpukan Buangan</div>
+                                </div>
+                            </div>
+
+                            {/* Modal/Overlay Saat Kartu Diambil */}
+                            {drawnCard && (
+                                <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                                    <div className={`bg-white p-4 rounded-3xl shadow-xl flex flex-col items-center animate-bounce-in w-full border-2 border-white ${existingCard ? 'max-w-2xl' : 'max-w-sm'}`}>
+                                        <h3 className="text-xl font-black text-gray-800 mb-3">
+                                            {existingCard ? "BANDINGKAN KARTU" : "KARTU DIAMBIL"}
+                                        </h3>
+                                        
+                                        <div className="flex flex-col md:flex-row gap-4 items-center justify-center w-full mb-4">
+                                            
+                                            {/* Logic Tampilan jika ada kartu kembar (Swap Scenario) */}
+                                            {existingCard ? (
+                                                <div className="flex gap-4 w-full justify-center">
+                                                    {/* Kartu Lama */}
+                                                    <div className="flex flex-col items-center gap-1 opacity-75">
+                                                        <span className="font-bold text-xs text-gray-500 uppercase tracking-widest">Kartu Lama</span>
+                                                        <div className="scale-90">
+                                                            <Card card={existingCard} />
+                                                        </div>
+                                                        <div className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-600 border border-gray-200">
+                                                            Poin: {existingCard.pointsEarned}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Indikator VS */}
+                                                    <div className="flex flex-col justify-center items-center">
+                                                        <div className="font-black text-gray-300 text-lg">VS</div>
+                                                    </div>
+
+                                                    {/* Kartu Baru */}
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <span className="font-bold text-xs text-indigo-600 uppercase tracking-widest">Kartu Baru</span>
+                                                        <div className="scale-100 ring-4 ring-indigo-200 rounded-lg">
+                                                            <Card card={drawnCard} />
+                                                        </div>
+                                                        <div className={`px-2 py-1 rounded text-xs font-bold border flex items-center gap-1 ${potentialPoints >= existingCard.pointsEarned ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                                                            Poin: {potentialPoints} 
+                                                            {pointDiff !== 0 && (
+                                                                <span className={pointDiff > 0 ? "text-green-600" : "text-red-600"}>
+                                                                    ({pointDiff > 0 ? '+' : ''}{pointDiff})
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                /* Tampilan Normal (Single Card) */
+                                                <div className="scale-100 transform origin-center mx-auto">
+                                                    <Card card={drawnCard} />
+                                                </div>
+                                            )}
+                                            
+                                            {/* Panel Info & Aksi */}
+                                            <div className="flex-1 flex flex-col gap-2 w-full max-w-xs">
+                                                {canKeep ? (
+                                                    <div className={`p-2 rounded-lg border-2 ${isPerfectMatch ? 'bg-green-100 border-green-400 text-green-900' : 'bg-yellow-100 border-yellow-400 text-yellow-900'}`}>
+                                                        <div className="flex items-center gap-1.5 mb-0.5">
+                                                            {isPerfectMatch ? <Star className="fill-current" size={16}/> : <CheckCircle size={16}/>}
+                                                            <span className="font-bold text-sm">COCOK!</span>
+                                                        </div>
+                                                        <p className="leading-tight text-[10px] mb-1">
+                                                            {isPerfectMatch 
+                                                                ? "Warna & Topik Sama! Poin Maksimal." 
+                                                                : "Topik Sama, Warna Beda. Poin Minimal."}
+                                                        </p>
+                                                        {existingCard && (
+                                                            <div className="bg-white/50 p-1.5 rounded-md text-[8px] font-semibold flex items-center gap-1">
+                                                                <RefreshCw size={10}/>
+                                                                Slot ini sudah terisi. Mau tukar?
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="bg-red-100 p-2 rounded-lg border-2 border-red-300 text-red-900">
+                                                        <div className="flex items-center gap-1.5 mb-0.5">
+                                                            <XCircle size={16}/>
+                                                            <span className="font-bold text-sm">TIDAK COCOK</span>
+                                                        </div>
+                                                        <p className="leading-tight text-[10px]">Kartu ini tidak cocok dengan topik di papanmu.</p>
+                                                    </div>
+                                                )}
+                                                
+                                                <div className="grid grid-cols-2 gap-1.5 mt-0.5">
+                                                    <button 
+                                                        onClick={handleDiscardCard}
+                                                        className="bg-red-500 hover:bg-red-600 text-white py-2 rounded-md font-bold text-xs shadow-sm flex items-center justify-center gap-1 transition-transform active:scale-95"
+                                                    >
+                                                        <XCircle size={14}/> {existingCard ? "BUANG BARU" : "BUANG"}
+                                                    </button>
+                                                    {canKeep && (
+                                                        <button 
+                                                            onClick={handleKeepCard}
+                                                            className={`text-white py-2 rounded-md font-bold text-xs shadow-sm flex items-center justify-center gap-1 transition-transform active:scale-95 ${existingCard ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}`}
+                                                        >
+                                                            {existingCard ? <RefreshCw size={14}/> : <CheckCircle size={14}/>} 
+                                                            {existingCard ? "TUKAR KARTU" : "SIMPAN"}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Papan Pemain Aktif - Full Width for IFP */}
+                            <div className="w-full bg-white/95 backdrop-blur rounded-t-[2rem] shadow-[0_-5px_20px_-10px_rgba(0,0,0,0.2)] p-3 pb-4 mt-auto mb-4 md:mb-8 z-10 border-t-2 border-indigo-200 flex flex-col">
+                                <div className="flex justify-between items-center mb-2 px-3">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-2 h-6 bg-indigo-500 rounded-full"></div>
+                                        <div className="text-base font-bold text-gray-700">Papan Permainanmu</div>
+                                    </div>
+                                    <div className="bg-indigo-600 text-white px-3 py-0.5 rounded-full font-bold text-xs shadow-sm">
+                                        Total Poin: {currentPlayer.score}
+                                    </div>
+                                </div>
+                                <div className="flex flex-wrap justify-center gap-2 w-full">
+                                    {currentPlayer.boardConfig.map((slot, idx) => (
+                                        <Card 
+                                            key={idx}
+                                            isTarget={true}
+                                            targetColor={slot.targetColor}
+                                            topic={slot.topic}
+                                            card={currentPlayer.collectedCards[slot.topic]}
+                                            isSmall={currentPlayer.boardConfig.length > 6} 
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (gameState === 'ended') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                        <ControlButtons />
+                         {/* White overlay for readability over background */}
+                        <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0"></div>
+                        
+                        <div className="bg-white p-6 rounded-[2rem] shadow-2xl text-center max-w-2xl w-full z-10 border-2 border-white animate-bounce-in">
+                            <div className="mb-3 inline-block relative">
+                                <Trophy size={48} className="text-yellow-500 drop-shadow-md" />
+                                <Star className="absolute -top-1 -right-1 text-yellow-300 fill-current animate-ping" size={24} />
+                            </div>
+                            
+                            <h1 className="text-3xl font-black text-gray-800 mb-1">PERMAINAN SELESAI!</h1>
+                            <p className="text-xl text-gray-500 mb-6 font-light">Selamat kepada <span className="text-indigo-600 font-bold underline decoration-wavy">{winner.name}</span></p>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                                {players.map(p => (
+                                    <div key={p.id} className={`relative p-3 rounded-xl border-2 transition-transform hover:scale-105 ${p.id === winner.id ? 'border-yellow-400 bg-yellow-50 shadow-lg scale-105 z-10' : 'border-gray-100 bg-gray-50'}`}>
+                                        {p.id === winner.id && <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-full shadow-sm">JUARA</div>}
+                                        <div className="font-bold text-base text-gray-600 mb-0.5">{p.name}</div>
+                                        <div className="text-3xl font-black text-indigo-600">{p.score}</div>
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Poin</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 mb-6 shadow-md text-white relative overflow-hidden group cursor-pointer transition-all hover:shadow-xl">
+                                <div className="absolute top-0 right-0 p-4 opacity-10 transform rotate-12">
+                                    <MessageCircle size={80} fill="currentColor"/>
+                                </div>
+                                
+                                <h3 className="text-xl font-black mb-1 flex items-center justify-center gap-1.5">
+                                    <MessageCircle size={24} /> BINCANG NUMERASI
+                                </h3>
+                                <p className="text-sm opacity-90 mb-3">Pemenang, silakan pilih satu kartu kebanggaanmu untuk kita bahas bersama!</p>
+                                
+                                <div className="flex flex-wrap justify-center gap-2 relative z-10">
+                                    {Object.values(winner.collectedCards).length > 0 ? (
+                                        Object.values(winner.collectedCards).map((card, idx) => (
+                                            <div key={idx} onClick={() => startDiscussion(card)} className="hover:scale-110 transition-transform cursor-pointer ring-2 ring-transparent hover:ring-yellow-400 rounded-lg">
+                                                <Card card={card} isSmall={true} />
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="bg-white/20 p-2 rounded-lg text-xs">
+                                            <p>Pemenang tidak memiliki kartu. Silakan pilih kartu acak dari deck.</p>
+                                            <button onClick={() => startDiscussion(deck[0] || CARDS_DATA[0])} className="mt-1 bg-yellow-400 text-yellow-900 px-3 py-1 rounded font-bold">Pilih Kartu Acak</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <button onClick={startGame} className="bg-gray-800 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-gray-900 flex items-center gap-1.5 mx-auto text-base shadow-lg transition-transform active:scale-95">
+                                <RotateCcw size={16} /> Main Lagi
+                            </button>
+                            <button onClick={() => setGameState('intro')} className="mt-4 text-gray-400 hover:text-gray-600 font-bold text-[10px] flex items-center justify-center gap-0.5 mx-auto">
+                                <ArrowRight className="rotate-180" size={10}/> Kembali ke Judul
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (gameState === 'discussion') {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 relative">
+                        <ControlButtons />
+                         {/* White overlay for readability over background */}
+                        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-0"></div>
+
+                        <div className="bg-white rounded-[2rem] shadow-2xl p-6 md:p-8 max-w-4xl w-full flex flex-col md:flex-row gap-8 items-center animate-bounce-in relative z-10 border-2 border-white">
+                            
+                            <div className="flex-shrink-0 transform rotate-[-3deg] z-10">
+                                <div className="scale-95 drop-shadow-xl">
+                                    <Card card={discussionCard} />
+                                </div>
+                            </div>
+                            
+                            <div className="flex-1 z-10">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider text-[10px] border border-indigo-200">
+                                        Topik Diskusi
+                                    </span>
+                                    <h3 className="text-lg font-bold text-gray-500">{discussionCard.topic}</h3>
+                                </div>
+                                
+                                <h2 className="text-2xl md:text-3xl font-black text-gray-800 leading-tight mb-6">
+                                    "{discussionCard.question}"
+                                </h2>
+
+                                <div className="bg-indigo-50 p-4 rounded-xl border-l-4 border-indigo-500 shadow-inner">
+                                    <h4 className="font-bold text-base text-indigo-800 mb-2 flex items-center gap-1.5">
+                                        <Users size={16}/> Panduan Bincang Numerasi (Metode STAR):
+                                    </h4>
+                                    <ul className="space-y-2 text-sm text-gray-700">
+                                        <li className="flex gap-2">
+                                            <span className="bg-indigo-200 text-indigo-800 font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs">S-T</span>
+                                            <span><strong>Stimulus & Tugas:</strong> Ajak murid memahami soal di kartu dan memikirkan jawabannya.</span>
+                                        </li>
+                                        <li className="flex gap-2">
+                                            <span className="bg-indigo-200 text-indigo-800 font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs">A</span>
+                                            <span><strong>Aksi:</strong> Diskusikan! Tanyakan: "Kenapa jawabannya begitu?", "Apa yang terjadi jika angkanya berbeda?", atau "Ada cara lain?".</span>
+                                        </li>
+                                        <li className="flex gap-2">
+                                            <span className="bg-indigo-200 text-indigo-800 font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs">R</span>
+                                            <span><strong>Respons:</strong> Simpulkan manfaat hitungan ini untuk kebiasaan sehari-hari kita.</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <button 
+                                    onClick={() => setGameState('intro')}
+                                    className="mt-6 group text-gray-500 hover:text-indigo-600 font-bold flex items-center gap-1.5 text-sm transition-colors"
+                                >
+                                    <Home className="group-hover:-translate-y-1 transition-transform" /> Kembali ke Halaman Utama
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
